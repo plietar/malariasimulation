@@ -57,3 +57,16 @@ Rcpp::IntegerVector fast_weighted_sample(
     values = values + 1;
     return values;
 }
+
+//[[Rcpp::export]]
+double double_variable_mean_cpp(
+    Rcpp::XPtr<DoubleVariable> variable
+    ) {
+    if (variable->size() == 0) {
+        return R_NaN;
+    } else {
+        const std::vector<double>& values = variable->get_values();
+        double sum = std::accumulate(values.begin(), values.end(), 0.0);
+        return sum / values.size();
+    }
+}

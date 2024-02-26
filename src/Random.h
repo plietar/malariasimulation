@@ -22,7 +22,7 @@ public:
     virtual std::vector<size_t> sample(size_t, size_t, bool) = 0;
     virtual void prop_sample_bucket(
         size_t size,
-        std::vector<double> probs,
+        const std::vector<double>& probs,
         int* result
     ) = 0;
     virtual void seed(size_t) = 0;
@@ -50,7 +50,7 @@ public:
     // method.
     virtual void prop_sample_bucket(
         size_t,
-        std::vector<double>,
+        const std::vector<double>&,
         int*
     );
     virtual ~Random() = default;

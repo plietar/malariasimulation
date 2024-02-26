@@ -105,3 +105,7 @@ fast_weighted_sample <- function(size, probs) {
     .Call(`_malariasimulation_fast_weighted_sample`, size, probs)
 }
 
+double_variable_mean_cpp <- function(variable) {
+    .Call(`_malariasimulation_double_variable_mean_cpp`, variable)
+}
+

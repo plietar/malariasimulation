@@ -88,3 +88,8 @@ RandomState <- R6::R6Class(
     }
   )
 )
+
+double_variable_mean <- function(v) {
+  stopifnot(inherits(v , "DoubleVariable"))
+  double_variable_mean_cpp(v$.variable)
+}

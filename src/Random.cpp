@@ -37,7 +37,7 @@ std::vector<size_t> Random::sample(size_t n, size_t size, bool replacement) {
 
 void Random::prop_sample_bucket(
         size_t size,
-        std::vector<double> probs,
+        const std::vector<double>& probs,
         int* result
     ) {
     auto n = probs.size();

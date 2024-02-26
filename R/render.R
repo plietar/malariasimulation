@@ -112,7 +112,7 @@ create_variable_mean_renderer_process <- function(
     for (i in seq_along(variables)) {
       renderer$render(
         paste0(names[[i]], '_mean'),
-        mean(variables[[i]]$get_values()),
+        double_variable_mean(variables[[i]]),
         timestep
       )
     }

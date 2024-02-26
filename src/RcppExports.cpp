@@ -347,6 +347,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// double_variable_mean_cpp
+double double_variable_mean_cpp(Rcpp::XPtr<DoubleVariable> variable);
+RcppExport SEXP _malariasimulation_double_variable_mean_cpp(SEXP variableSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<DoubleVariable> >::type variable(variableSEXP);
+    rcpp_result_gen = Rcpp::wrap(double_variable_mean_cpp(variable));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP run_testthat_tests(void);
 
@@ -377,6 +388,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_malariasimulation_bernoulli_multi_p_cpp", (DL_FUNC) &_malariasimulation_bernoulli_multi_p_cpp, 1},
     {"_malariasimulation_bitset_index_cpp", (DL_FUNC) &_malariasimulation_bitset_index_cpp, 2},
     {"_malariasimulation_fast_weighted_sample", (DL_FUNC) &_malariasimulation_fast_weighted_sample, 2},
+    {"_malariasimulation_double_variable_mean_cpp", (DL_FUNC) &_malariasimulation_double_variable_mean_cpp, 1},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 0},
     {NULL, NULL, 0}
 };
