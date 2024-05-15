@@ -1,0 +1,127 @@
+name: Continuous benchmarking
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+on:
+  issue_comment:
+    types: ['created', 'edited']
+
+permissions:
+  content: read
+  issues: write
+  statuses: write
+
+jobs:
+  prepare:
+    if: >
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/benchmark') && (
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR' 
+      )
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set commit status as in progress
+        uses: actions/github-script@v7
+        with:
+          script: |
+            var pr = (await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            })).data;
+            var head_sha = pr.head.sha;
+            var url = "https://github.com/${{github.repository}}/actions/runs/${{ github.run_id }}";
+
+            github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: head_sha,
+              state: "pending",
+              target_url: url,
+              description: 'Benchmarking in progress...',
+              context: 'touchstone'
+            });
+  build:
+    if: >
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/benchmark') && (
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR' 
+      )
+
+    permissions:
+      content: read
+
+    runs-on: ubuntu-22.04
+    env:
+      RSPM: "https://packagemanager.posit.co/cran/__linux__/jammy/2024-05-15"
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: lorenzwalthert/touchstone/actions/receive@main
+
+  comment:
+    needs: build
+    if: >
+      always() &&
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/benchmark') && (
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR' 
+      )
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download benchmarking results
+        if: needs.build.result == 'success'
+        # Version number must match the one used by touchstone when uploading
+        uses: actions/download-artifact@v2
+        with:
+          name: pr
+
+      - name: 'Comment on PR'
+        if: needs.build.result == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            var fs = require('fs');
+            var body = fs.readFileSync('./info.txt').toString();
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+      - name: Update commit status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            var pr = (await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            })).data;
+            var head_sha = pr.head.sha;
+            var url = "https://github.com/${{github.repository}}/actions/runs/${{ github.run_id }}";
+
+            // TODO: take comment step into account
+            var result = "${{ needs.build.result }}";
+
+            github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: head_sha,
+              state: result,
+              target_url: url,
+              description: result == "success" ? 'Benchmarking succeeded!' :  'Benchmarking failed!',
+              context: 'touchstone'
+            });
