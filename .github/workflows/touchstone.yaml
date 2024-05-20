@@ -66,6 +66,8 @@ jobs:
 
     steps:
       - uses: plietar/touchstone/actions/receive@main
+        with:
+          touchstone_package: github::plietar/touchstone@main
 
   comment:
     needs: build
