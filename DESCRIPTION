@@ -68,9 +68,9 @@ Encoding: UTF-8
 LazyData: true
 Remotes:
   mrc-ide/malariaEquilibrium,
-  mrc-ide/individual
+  mrc-ide/individual@v0.1.13
 Imports:
-    individual (>= 0.1.16),
+    individual,
     malariaEquilibrium (>= 1.0.1),
     Rcpp,
     statmod,

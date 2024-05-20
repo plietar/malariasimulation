@@ -1,11 +1,11 @@
 create_events <- function(parameters) {
   events <- list(
     # MDA events
-    mda_administer = individual::Event$new(restore=FALSE),
-    smc_administer = individual::Event$new(restore=FALSE),
+    mda_administer = individual::Event$new(),
+    smc_administer = individual::Event$new(),
 
     # TBV event
-    tbv_vaccination = individual::Event$new(restore=FALSE),
+    tbv_vaccination = individual::Event$new(),
 
     # Bednet events
     throw_away_net = individual::TargetedEvent$new(parameters$human_population)
@@ -21,7 +21,7 @@ create_events <- function(parameters) {
       seq_along(parameters$mass_pev_booster_spacing),
       function(.) individual::TargetedEvent$new(parameters$human_population)
     )
-    events$mass_pev <- individual::Event$new(restore=FALSE)
+    events$mass_pev <- individual::Event$new()
     events$mass_pev_doses <- mass_pev_doses
     events$mass_pev_boosters <- mass_pev_boosters
   }
