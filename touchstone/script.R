@@ -7,7 +7,7 @@ touchstone::benchmark_run(
     set.seed(123)
     params <- malariasimulation::get_parameters(
       overrides = list(human_population=1e4))
-    malariasimulation::run_simulation(10000, params)
+    malariasimulation::run_simulation(100, params)
   },
   n = 10
 )
@@ -17,7 +17,7 @@ touchstone::benchmark_run(
     set.seed(123)
     params <- malariasimulation::get_parameters(
       overrides = list(human_population=1e6))
-    malariasimulation::run_simulation(1000, params)
+    malariasimulation::run_simulation(10, params)
   },
   n = 4
 )

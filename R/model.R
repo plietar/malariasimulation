@@ -111,6 +111,7 @@ run_resumable_simulation <- function(
     initial_state = NULL,
     restore_random_state = FALSE
 ) {
+  Sys.sleep(5)
   random_seed(ceiling(runif(1) * .Machine$integer.max))
   if (is.null(parameters)) {
     parameters <- get_parameters()
