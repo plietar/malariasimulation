@@ -42,11 +42,11 @@ jobs:
         with:
           result-encoding: string
           script: |
-            let pr = await github.rest.pulls.get({
+            let pr = (await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number
-            }).data;
+            })).data;
 
             return pr.head.sha;
 
