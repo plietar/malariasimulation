@@ -18,6 +18,8 @@ env:
 
 jobs:
   prepare:
+    # The other jobs all depend on this one succeeding. They'll implicitly get
+    # skipped as well if this condition is not met.
     if: >
       github.event.issue.pull_request &&
       startsWith(github.event.comment.body, '/benchmark') && (
@@ -27,27 +29,31 @@ jobs:
       )
 
     runs-on: ubuntu-latest
+
     outputs:
-      head_sha: ${{ steps.head_sha.outputs.result }}
+      # The HEAD's sha is exported so we can update the status when the workflow
+      # completes.
+      head_sha: ${{ steps.metadata.outputs.result }}
 
     steps:
-      - id: head_sha
-        name: Fetch head SHA
+      - id: metadata
+        name: Fetch PR metadata
         uses: actions/github-script@v7
         with:
           result-encoding: string
           script: |
-            return (await github.rest.pulls.get({
+            let pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number
-            })).data.head.sha;
+            })).data;
+
+            return pr.head.sha;
 
       - name: Set commit status as in progress
         uses: actions/github-script@v7
         env:
-          HEAD_SHA: ${{ steps.head_sha.outputs.result }}
-
+          HEAD_SHA: ${{ steps.metadata.outputs.result }}
         with:
           script: |
             github.rest.repos.createCommitStatus({
@@ -63,9 +69,11 @@ jobs:
   build:
     needs: prepare
 
-    # This job run potentially untrusted code from the PR. We restrict the
-    # scope of the token as much as we can. We also need to be careful not to
-    # use any repository secrets as inputs to the job.
+    # This job run potentially untrusted code from the PR (albeit gated by a
+    # comment from a collaborator). We restrict the scope of the token as much
+    # as we can. We also need to be careful not to use any repository secrets
+    # as inputs to the job. The rest of the workflow only runs code from the
+    # master branch so isn't vulnerable to outsiders.
     permissions:
       contents: read
 
@@ -87,9 +95,7 @@ jobs:
           overwrite: true
 
   comment:
-    needs:
-      - prepare
-      - build
+    needs: ['prepare', 'build']
 
     if: always() && needs.prepare.result == 'success'
 
@@ -102,7 +108,7 @@ jobs:
         with:
           name: pr
 
-      - name: 'Comment on PR'
+      - name: Comment on PR
         if: needs.build.result == 'success'
         uses: actions/github-script@v7
         with:
