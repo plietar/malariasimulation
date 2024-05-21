@@ -15,7 +15,8 @@ touchstone::benchmark_run(
       malariasimulation::run_simulation(500, params)
     })
 
-    file.copy(pprof, tempfile(tmpdir = file.path(dir_touchstone(), "profiles", branch)))
+    file.copy(pprof, tempfile(tmpdir = file.path(dir_touchstone(), "profiles", branch),
+                              fileext=".pb.gz"))
   },
   n = 1
 )

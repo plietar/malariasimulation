@@ -41,7 +41,7 @@ jobs:
 
       - uses: lorenzwalthert/touchstone/actions/receive@main
         with:
-          extra-packages: github::plietar/jointprof
+          extra-packages: github::plietar/jointprof@more-stack
 
       - uses: actions/upload-artifact@v2
         with:
