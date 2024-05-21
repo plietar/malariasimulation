@@ -1,0 +1,54 @@
+name: Profiling
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.number }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      RSPM: "https://packagemanager.posit.co/cran/__linux__/noble/2024-05-15"
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - run: |
+          sudo apt-get update
+          sudo apt-get install \
+            golang-go \
+            graphviz \
+            libgoogle-perftools-dev \
+            libprotobuf-c-dev \
+            libprotobuf-dev \
+            libprotoc-dev \
+            protobuf-c-compiler \
+            protobuf-compiler
+
+          go install github.com/google/pprof@latest
+
+          mkdir -p touchstone/pr-comment
+          touch touchstone/pr-comment/info.txt
+
+      - uses: lorenzwalthert/touchstone/actions/receive@main
+        with:
+          extra-packages: github::plietar/jointprof
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: profiles
+          path: touchstone/profiles/
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: lib
+          path: touchstone/lib/
