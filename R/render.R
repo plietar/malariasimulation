@@ -49,7 +49,7 @@ create_prevelance_renderer <- function(
       renderer$render(
         paste0('p_detect_lm_', lower, '_', upper),
         in_age$copy()$and(clinically_detected)$size() + sum(
-          prob[bitset_index(asymptomatic, in_age)]
+          prob[bitset_index2(asymptomatic, in_age)]
         ),
         timestep
       )
@@ -126,7 +126,7 @@ incidence_probability_renderer <- function(
     in_age <- in_age_range(birth, timestep, lower, upper)
     renderer$render(
       paste0('p_', prefix, lower, '_', upper),
-      sum(prob[bitset_index(source_pop, in_age)]),
+      sum(prob[bitset_index2(source_pop, in_age)]),
       timestep
     )
   }
