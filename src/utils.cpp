@@ -27,6 +27,68 @@ std::vector<size_t> bernoulli_multi_p_cpp(const std::vector<double> p) {
     return values;
 }
 
+template<class A>
+class IterableBitsetPrivate {
+    public:
+    size_t max_n;
+    size_t n;
+    size_t num_bits;
+    std::vector<A> bitmap;
+};
+
+template<typename A>
+size_t count_range(const IterableBitset<A>& bitset, size_t start, size_t end) {
+    const IterableBitsetPrivate<A>* p =
+        reinterpret_cast<const IterableBitsetPrivate<A>*>(&bitset);
+    constexpr size_t num_bits = sizeof(A) * 8;
+
+    if (start == end) {
+        return 0;
+    } else if (start / num_bits == end / num_bits) {
+        A mask =
+            (static_cast<A>(1) << (end % num_bits)) -
+            (static_cast<A>(1) << (start % num_bits));
+        return popcount(p->bitmap[start / num_bits] & mask);
+    } else {
+        A mask = -(static_cast<A>(1) << (start % num_bits));
+        size_t n = popcount(p->bitmap[start / num_bits] & mask);
+
+        start = (start + num_bits) / num_bits * num_bits;
+        for (; start + num_bits <= end; start += num_bits) {
+            n += popcount(p->bitmap[start / num_bits]);
+        }
+        start = (end / num_bits) * num_bits;
+                                
+        if (start < end) {
+            mask = (static_cast<A>(1) << (end % num_bits)) - 1;
+            n += popcount(p->bitmap[end / num_bits] & mask);
+        }
+
+        return n;
+    }
+}
+
+//[[Rcpp::export]]
+std::vector<size_t> bitset_index2_cpp(
+    Rcpp::XPtr<individual_index_t> a,
+    Rcpp::XPtr<individual_index_t> b
+) {
+    size_t n = 1;
+    size_t cursor = 0;
+
+    auto values = std::vector<size_t>();
+    for (const auto& v : *b) {
+        if (a->find(v) != a->end()) {
+            n += count_range(*a, cursor, v);
+            cursor = v;
+            values.push_back(n);
+        } else {
+            // values.push_back(NA);
+        }
+    }
+    return values;
+}
+
 //[[Rcpp::export]]
 std::vector<size_t> bitset_index_cpp(
     Rcpp::XPtr<individual_index_t> a,

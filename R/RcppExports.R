@@ -97,6 +97,10 @@ bernoulli_multi_p_cpp <- function(p) {
     .Call(`_malariasimulation_bernoulli_multi_p_cpp`, p)
 }
 
+bitset_index2_cpp <- function(a, b) {
+    .Call(`_malariasimulation_bitset_index2_cpp`, a, b)
+}
+
 bitset_index_cpp <- function(a, b) {
     .Call(`_malariasimulation_bitset_index_cpp`, a, b)
 }

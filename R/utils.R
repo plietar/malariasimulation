@@ -26,6 +26,8 @@ bitset_index <- function(a, b) bitset_index_cpp(a$.bitset, b$.bitset)
 
 bitset_at_logical <- function(a, b) individual::Bitset$new(from = bitset_at_logical_cpp(a$.bitset, b))
 
+bitset_index2 <- function(a, b) bitset_index2_cpp(a$.bitset, b$.bitset)
+
 #' @importFrom stats runif
 log_uniform <- function(size, rate) -rate * log(runif(size))
 

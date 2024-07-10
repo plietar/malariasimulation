@@ -65,7 +65,7 @@ CompetingHazard <- R6::R6Class(
 
       rates <- matrix(ncol = length(private$outcomes), nrow = candidates$size(), 0)
       for (i in seq_along(private$outcomes)) {
-        idx <- bitset_index(
+        idx <- bitset_index2(
           candidates,
           private$outcomes[[i]]$target)
 
