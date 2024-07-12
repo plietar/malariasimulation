@@ -324,6 +324,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// bitset_index2_cpp
+std::vector<size_t> bitset_index2_cpp(Rcpp::XPtr<individual_index_t> a, Rcpp::XPtr<individual_index_t> b);
+RcppExport SEXP _malariasimulation_bitset_index2_cpp(SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<individual_index_t> >::type a(aSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<individual_index_t> >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(bitset_index2_cpp(a, b));
+    return rcpp_result_gen;
+END_RCPP
+}
 // bitset_index_cpp
 std::vector<size_t> bitset_index_cpp(Rcpp::XPtr<individual_index_t> a, Rcpp::XPtr<individual_index_t> b);
 RcppExport SEXP _malariasimulation_bitset_index_cpp(SEXP aSEXP, SEXP bSEXP) {
@@ -333,6 +345,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::XPtr<individual_index_t> >::type a(aSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<individual_index_t> >::type b(bSEXP);
     rcpp_result_gen = Rcpp::wrap(bitset_index_cpp(a, b));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bitset_at_logical_cpp
+Rcpp::XPtr<individual_index_t> bitset_at_logical_cpp(Rcpp::XPtr<individual_index_t> source, Rcpp::LogicalVector filter);
+RcppExport SEXP _malariasimulation_bitset_at_logical_cpp(SEXP sourceSEXP, SEXP filterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<individual_index_t> >::type source(sourceSEXP);
+    Rcpp::traits::input_parameter< Rcpp::LogicalVector >::type filter(filterSEXP);
+    rcpp_result_gen = Rcpp::wrap(bitset_at_logical_cpp(source, filter));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -375,7 +399,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_malariasimulation_random_save_state", (DL_FUNC) &_malariasimulation_random_save_state, 0},
     {"_malariasimulation_random_restore_state", (DL_FUNC) &_malariasimulation_random_restore_state, 1},
     {"_malariasimulation_bernoulli_multi_p_cpp", (DL_FUNC) &_malariasimulation_bernoulli_multi_p_cpp, 1},
+    {"_malariasimulation_bitset_index2_cpp", (DL_FUNC) &_malariasimulation_bitset_index2_cpp, 2},
     {"_malariasimulation_bitset_index_cpp", (DL_FUNC) &_malariasimulation_bitset_index_cpp, 2},
+    {"_malariasimulation_bitset_at_logical_cpp", (DL_FUNC) &_malariasimulation_bitset_at_logical_cpp, 2},
     {"_malariasimulation_fast_weighted_sample", (DL_FUNC) &_malariasimulation_fast_weighted_sample, 2},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 0},
     {NULL, NULL, 0}
