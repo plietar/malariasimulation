@@ -77,10 +77,11 @@ std::vector<size_t> bitset_index2_cpp(
     size_t cursor = 0;
 
     auto values = std::vector<size_t>();
+    values.reserve(b->size());
     for (const auto& v : *b) {
+        n += count_range(*a, cursor, v);
+        cursor = v;
         if (a->find(v) != a->end()) {
-            n += count_range(*a, cursor, v);
-            cursor = v;
             values.push_back(n);
         } else {
             // values.push_back(NA);
