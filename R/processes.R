@@ -22,39 +22,39 @@
 #' lagged transmission lists (default: 1)
 #' @noRd
 create_processes <- function(
-  renderer,
-  variables,
-  events,
-  parameters,
-  models,
-  solvers,
-  correlations,
-  lagged_eir,
-  lagged_infectivity,
-  timesteps,
-  mixing_fn = NULL,
-  mixing_index = 1
-  ) {
+    renderer,
+    variables,
+    events,
+    parameters,
+    models,
+    solvers,
+    correlations,
+    lagged_eir,
+    lagged_infectivity,
+    timesteps,
+    mixing_fn = NULL,
+    mixing_index = 1
+) {
   
   # ========
   # Immunity
   # ========
   processes <- list(
     # Maternal immunity
-    create_exponential_decay_process(variables$icm, parameters$rm),
-    create_exponential_decay_process(variables$ivm, parameters$rvm),
+    immunity_process = create_exponential_decay_process(variables$icm, parameters$rm),
+    immunity_process = create_exponential_decay_process(variables$ivm, parameters$rvm),
     # Blood immunity
-    create_exponential_decay_process(variables$ib, parameters$rb),
+    immunity_process = create_exponential_decay_process(variables$ib, parameters$rb),
     # Acquired immunity
-    create_exponential_decay_process(variables$ica, parameters$rc),
-    create_exponential_decay_process(variables$iva, parameters$rva),
-    create_exponential_decay_process(variables$id, parameters$rid)
+    immunity_process = create_exponential_decay_process(variables$ica, parameters$rc),
+    immunity_process = create_exponential_decay_process(variables$iva, parameters$rva),
+    immunity_process = create_exponential_decay_process(variables$id, parameters$rid)
   )
 
   if (parameters$individual_mosquitoes) {
     processes <- c(
       processes,
-      create_mosquito_emergence_process(
+      mosquito_emergence_process = create_mosquito_emergence_process(
         solvers,
         variables$mosquito_state,
         variables$species,
@@ -63,16 +63,36 @@ create_processes <- function(
       )
     )
   }
-
+  
+  # =====================================================
+  # Competing Hazard Outcomes (Infections and Recoveries)
+  # =====================================================
+  
+  infection_outcome <- CompetingOutcome$new(
+    targeted_process = function(timestep, target){
+      infection_outcome_process(timestep, target, 
+                                variables, renderer, parameters, 
+                                prob = rate_to_prob(infection_outcome$rates))
+    },
+    size = parameters$human_population
+  )
+  
+  recovery_outcome <- CompetingOutcome$new(
+    targeted_process = function(timestep, target){
+      recovery_outcome_process(timestep, target, variables, parameters, renderer)
+    },
+    size = parameters$human_population
+  )
+  
   # ==============================
   # Biting and mortality processes
   # ==============================
-  # schedule infections for humans and set last_boosted_*
+  # simulate bites, calculates infection rates for bitten humans and set last_boosted_*
   # move mosquitoes into incubating state
   # kill mosquitoes caught in vector control
   processes <- c(
     processes,
-    create_biting_process(
+    biting_process = create_biting_process(
       renderer,
       solvers,
       models,
@@ -82,66 +102,35 @@ create_processes <- function(
       lagged_infectivity,
       lagged_eir,
       mixing_fn,
-      mixing_index
-    ),
-    create_asymptomatic_progression_process(
-      variables$state,
-      parameters$dd,
-      variables,
-      parameters
-    ),
-    create_progression_process(
-      variables$state,
-      'A',
-      'U',
-      parameters$da,
-      variables$infectivity,
-      parameters$cu
-    ),
-    create_progression_process(
-      variables$state,
-      'U',
-      'S',
-      parameters$du,
-      variables$infectivity,
-      0
+      mixing_index,
+      infection_outcome
     )
   )
   
-  # =======================
-  # Antimalarial Resistance
-  # =======================
-  # Add an a new process which governs the transition from Tr to S when
-  # antimalarial resistance is simulated. The rate of transition switches
-  # from a parameter to a variable when antimalarial resistance == TRUE.
+  # ===================
+  # Disease Progression
+  # ===================
   
-  # Assign the dt input to a separate object with the default single parameter value:
-  dt_input <- parameters$dt
-  
-  # If antimalarial resistance is switched on, assign dt variable values to the 
-  if(parameters$antimalarial_resistance) {
-    dt_input <- variables$dt
-  }
-  
-  # Create the progression process for Tr --> S specifying dt_input as the rate:
   processes <- c(
     processes,
-    create_progression_process(
-      variables$state,
-      'Tr',
-      'S',
-      dt_input,
-      variables$infectivity,
-      0
-    )
+    recovery_rates_process = create_recovery_rates_process(
+      variables,
+      recovery_outcome
+    ),
+    
+    # Resolve competing hazards of infection with disease progression
+    hazard_process = CompetingHazard$new(
+      outcomes = list(infection_outcome, recovery_outcome),
+      size = parameters$human_population
+    )$resolve
   )
-
+  
   # ===============
   # ODE integration
   # ===============
   processes <- c(
     processes,
-    create_solver_stepping_process(solvers, parameters)
+    solver_process = create_solver_stepping_process(solvers, parameters)
   )
 
   # =========
@@ -150,7 +139,7 @@ create_processes <- function(
   if (!is.null(parameters$pev_epi_coverage)) {
     processes <- c(
       processes,
-      create_epi_pev_process(
+      epi_pev_process = create_epi_pev_process(
         variables,
         events,
         parameters,
@@ -167,7 +156,7 @@ create_processes <- function(
   if(!is.null(parameters$pmc_coverages)){
     processes <- c(
       processes,
-      create_pmc_process(
+      pmc_process = create_pmc_process(
         variables,
         events,
         parameters,
@@ -185,35 +174,40 @@ create_processes <- function(
   # =========
   processes <- c(
     processes,
-    individual::categorical_count_renderer_process(
-      renderer,
-      variables$state,
-      c('S', 'A', 'D', 'U', 'Tr')
-    ),
-    create_variable_mean_renderer_process(
+    categorical_renderer_process =
+      individual::categorical_count_renderer_process(
+        renderer,
+        variables$state,
+        c('S', 'A', 'D', 'U', 'Tr')
+      ),
+    immunity_renderer_process = create_variable_mean_renderer_process(
       renderer,
       c('ica', 'icm', 'ib', 'id', 'iva', 'ivm'),
       variables[c('ica', 'icm', 'ib', 'id', 'iva', 'ivm')]
     ),
-    create_prevelance_renderer(
+    prevelance_renderer_process = create_prevelance_renderer(
       variables$state,
       variables$birth,
       variables$id,
       parameters,
       renderer
     ),
-    create_age_group_renderer(
+    age_group_renderer_process = create_age_group_renderer(
       variables$birth,
       parameters,
       renderer
     ),
-    create_compartmental_rendering_process(renderer, solvers, parameters)
+    mosquito_state_renderer_process = create_compartmental_rendering_process(
+      renderer,
+      solvers,
+      parameters
+    )
   )
 
   if (parameters$individual_mosquitoes) {
     processes <- c(
       processes,
-      create_vector_count_renderer_individual(
+      vector_count_renderer_process = create_vector_count_renderer_individual(
         variables$mosquito_state,
         variables$species,
         variables$mosquito_state,
@@ -224,7 +218,7 @@ create_processes <- function(
   } else {
     processes <- c(
       processes,
-      create_total_M_renderer_compartmental(
+      vector_count_renderer_process = create_total_M_renderer_compartmental(
         renderer,
         solvers,
         parameters
@@ -239,20 +233,26 @@ create_processes <- function(
   if (parameters$bednets) {
     processes <- c(
       processes,
-      distribute_nets(
+      distribute_nets_process = distribute_nets(
         variables,
         events$throw_away_net,
         parameters,
         correlations
       ),
-      net_usage_renderer(variables$net_time, renderer)
+      net_usage_renderer_process = net_usage_renderer(
+        variables$net_time, renderer)
     )
   }
 
   if (parameters$spraying) {
     processes <- c(
       processes,
-      indoor_spraying(variables$spray_time, renderer, parameters, correlations)
+      indoor_spraying_process = indoor_spraying(
+        variables$spray_time,
+        renderer,
+        parameters,
+        correlations
+      )
     )
   }
 
@@ -262,14 +262,24 @@ create_processes <- function(
   if (parameters$progress_bar){
     processes <- c(
       processes,
-      create_progress_process(timesteps)
+      progress_bar_process = create_progress_process(timesteps)
     )
   }
 
+  # ======================
   # Mortality step
+  # ======================
+  # Mortality is not resolved as a competing hazard
+  
   processes <- c(
     processes,
-    create_mortality_process(variables, events, renderer, parameters))
+    mortality_process = create_mortality_process(
+      variables,
+      events,
+      renderer,
+      parameters
+    )
+  )
 
   processes
 }

@@ -43,6 +43,28 @@ std::vector<size_t> bitset_index_cpp(
     return values;
 }
 
+//[[Rcpp::export]]
+Rcpp::XPtr<individual_index_t> bitset_at_logical_cpp(
+    Rcpp::XPtr<individual_index_t> source,
+    Rcpp::LogicalVector filter
+    ) {
+    if (source->size() != filter.size()) {
+        Rcpp::stop("vector of logicals must equal the size of the bitset");
+    }
+
+    individual_index_t result(source->max_size());
+
+    auto source_it = source->begin();
+    auto filter_it = filter.begin();
+    for (; source_it != source->end() && filter_it != filter.end(); ++source_it, ++filter_it) {
+        if (*filter_it) {
+            result.insert(*source_it);
+        }
+    }
+
+    return Rcpp::XPtr<individual_index_t>(new individual_index_t(std::move(result)), true);
+}
+
 //[[Rcpp::export(rng = false)]]
 Rcpp::IntegerVector fast_weighted_sample(
     size_t size,
@@ -56,4 +78,35 @@ Rcpp::IntegerVector fast_weighted_sample(
     );
     values = values + 1;
     return values;
+}
+
+//[[Rcpp::export]]
+std::vector<Rcpp::XPtr<individual_index_t>> bitset_partition_cpp(
+    Rcpp::NumericVector values,
+    Rcpp::NumericMatrix weigths)
+{
+    if (weigths.rows() != values.size()) {
+        Rcpp::stop("number of rows must be equal to the size of the bitset");
+    }
+
+    std::vector<Rcpp::XPtr<individual_index_t>> result;
+    for (size_t i = 0; i < weigths.cols(); i++) {
+        result.emplace_back(new individual_index_t(weigths.rows()), true);
+    }
+
+    auto value_it = values.begin();
+    for (size_t row = 0; row < weigths.rows(); ++row, ++value_it) {
+        double v = *value_it;
+        for (size_t col = 0; col < weigths.cols(); ++col) {
+            double w = weigths(row, col);
+            if (v < w) {
+                result[col]->insert(row);
+                break;
+            } else {
+                v -= w;
+            }
+        }
+    }
+
+    return result;
 }
