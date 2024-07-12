@@ -83,6 +83,7 @@ CompetingHazard <- R6::R6Class(
         if (target$size() > 0) {
           private$outcomes[[i]]$execute(t, target)
         }
+        private$outcomes[[i]]$reset()
       }
     }
   )
