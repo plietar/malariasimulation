@@ -26,8 +26,8 @@ bitset_index <- function(a, b) bitset_index_cpp(a$.bitset, b$.bitset)
 
 bitset_at_logical <- function(a, b) individual::Bitset$new(from = bitset_at_logical_cpp(a$.bitset, b))
 
-bitset_partition <- function(bitset, value, weigths) {
-  lapply(bitset_partition_cpp(bitset$.bitset, value, weigths),
+bitset_partition <- function(value, weigths) {
+  lapply(bitset_partition_cpp(value, weigths),
          function(p) individual::Bitset$new(from = p))
 }
 

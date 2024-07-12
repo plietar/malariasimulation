@@ -77,11 +77,11 @@ CompetingHazard <- R6::R6Class(
       probs[is.na(probs)] <- 0
 
       rng <- private$rng(candidates$size())
-      targets <- bitset_partition(candidates, rng, probs)
+      targets <- bitset_partition(rng, probs)
       for (i in seq_along(private$outcomes)) {
         target <- targets[[i]]
         if (target$size() > 0) {
-          private$outcomes[[i]]$execute(t, target)
+          private$outcomes[[i]]$execute(t, bitset_at(candidates, target))
         }
         private$outcomes[[i]]$reset()
       }
