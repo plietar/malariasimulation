@@ -86,7 +86,10 @@ std::vector<Rcpp::XPtr<individual_index_t>> bitset_partition_cpp(
     Rcpp::NumericVector values,
     Rcpp::NumericMatrix weigths)
 {
-    if (source->size() != weigths.rows()) {
+    size_t nrows = weigths.rows();
+    size_t ncols = weigths.cols();
+
+    if (source->size() != nrows) {
         Rcpp::stop("number of rows must be equal to the size of the bitset");
     }
     if (source->size() != values.size()) {
@@ -94,15 +97,15 @@ std::vector<Rcpp::XPtr<individual_index_t>> bitset_partition_cpp(
     }
 
     std::vector<Rcpp::XPtr<individual_index_t>> result;
-    for (size_t i = 0; i < weigths.cols(); i++) {
+    for (size_t i = 0; i < ncols; i++) {
         result.emplace_back(new individual_index_t(source->max_size()), true);
     }
 
     auto source_it = source->begin();
     auto value_it = values.begin();
-    for (size_t row = 0; row < weigths.rows(); ++row, ++source_it, ++value_it) {
+    for (size_t row = 0; row < nrows; ++row, ++source_it, ++value_it) {
         double v = *value_it;
-        for (size_t col = 0; col < weigths.cols(); ++col) {
+        for (size_t col = 0; col < ncols; ++col) {
             double w = weigths(row, col);
             if (v < w) {
                 result[col]->insert(*source_it);
