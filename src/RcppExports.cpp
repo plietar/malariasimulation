@@ -359,6 +359,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// bitset_partition_cpp
+std::vector<Rcpp::XPtr<individual_index_t>> bitset_partition_cpp(Rcpp::XPtr<individual_index_t> source, Rcpp::NumericVector values, Rcpp::NumericMatrix weigths);
+RcppExport SEXP _malariasimulation_bitset_partition_cpp(SEXP sourceSEXP, SEXP valuesSEXP, SEXP weigthsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::XPtr<individual_index_t> >::type source(sourceSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type weigths(weigthsSEXP);
+    rcpp_result_gen = Rcpp::wrap(bitset_partition_cpp(source, values, weigths));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP run_testthat_tests(void);
 
@@ -390,6 +403,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_malariasimulation_bitset_index_cpp", (DL_FUNC) &_malariasimulation_bitset_index_cpp, 2},
     {"_malariasimulation_bitset_at_logical_cpp", (DL_FUNC) &_malariasimulation_bitset_at_logical_cpp, 2},
     {"_malariasimulation_fast_weighted_sample", (DL_FUNC) &_malariasimulation_fast_weighted_sample, 2},
+    {"_malariasimulation_bitset_partition_cpp", (DL_FUNC) &_malariasimulation_bitset_partition_cpp, 3},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 0},
     {NULL, NULL, 0}
 };

@@ -79,3 +79,39 @@ Rcpp::IntegerVector fast_weighted_sample(
     values = values + 1;
     return values;
 }
+
+//[[Rcpp::export]]
+std::vector<Rcpp::XPtr<individual_index_t>> bitset_partition_cpp(
+    Rcpp::XPtr<individual_index_t> source,
+    Rcpp::NumericVector values,
+    Rcpp::NumericMatrix weigths)
+{
+    if (source->size() != weigths.rows()) {
+        Rcpp::stop("number of rows must be equal to the size of the bitset");
+    }
+    if (source->size() != values.size()) {
+        Rcpp::stop("number of rows must be equal to the size of the bitset");
+    }
+
+    std::vector<Rcpp::XPtr<individual_index_t>> result;
+    for (size_t i = 0; i < weigths.cols(); i++) {
+        result.emplace_back(new individual_index_t(source->max_size()), true);
+    }
+
+    auto source_it = source->begin();
+    auto value_it = values.begin();
+    for (size_t row = 0; row < weigths.rows(); ++row, ++source_it, ++value_it) {
+        double v = *value_it;
+        for (size_t col = 0; col < weigths.cols(); ++col) {
+            double w = weigths(row, col);
+            if (v < w) {
+                result[col]->insert(*source_it);
+                break;
+            } else {
+                v -= w;
+            }
+        }
+    }
+
+    return result;
+}

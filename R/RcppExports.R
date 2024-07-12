@@ -109,3 +109,7 @@ fast_weighted_sample <- function(size, probs) {
     .Call(`_malariasimulation_fast_weighted_sample`, size, probs)
 }
 
+bitset_partition_cpp <- function(source, values, weigths) {
+    .Call(`_malariasimulation_bitset_partition_cpp`, source, values, weigths)
+}
+

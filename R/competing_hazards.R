@@ -77,19 +77,12 @@ CompetingHazard <- R6::R6Class(
       probs[is.na(probs)] <- 0
 
       rng <- private$rng(candidates$size())
-
-      cumulative <- rep(0, candidates$size())
-
-      for (o in seq_along(private$outcomes)) {
-        next_cumulative <- cumulative + probs[,o]
-        selected <- (rng > cumulative) & (rng <= next_cumulative)
-        cumulative <- next_cumulative
-
-        target <- bitset_at_logical(candidates, selected)
+      targets <- bitset_partition(candidates, rng, probs)
+      for (i in seq_along(private$outcomes)) {
+        target <- targets[[i]]
         if (target$size() > 0) {
-          private$outcomes[[o]]$execute(t, target)
+          private$outcomes[[i]]$execute(t, target)
         }
-        private$outcomes[[o]]$reset()
       }
     }
   )
