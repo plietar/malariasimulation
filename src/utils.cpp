@@ -101,13 +101,21 @@ std::vector<Rcpp::XPtr<individual_index_t>> bitset_partition_cpp(
         result.emplace_back(new individual_index_t(source->max_size()), true);
     }
 
+    // Incrementing bitset iterators is actually a little slow. We don't need
+    // the value on every iteration, only when there is a match. Skipping
+    // forward with `source_it += source_n` when needed is faster than
+    // `source_it++` on every iteration.
     auto source_it = source->begin();
+    size_t source_n = 0;
+
     auto value_it = values.begin();
-    for (size_t row = 0; row < nrows; ++row, ++source_it, ++value_it) {
+    for (size_t row = 0; row < nrows; ++row, ++value_it, ++source_n) {
         double v = *value_it;
         for (size_t col = 0; col < ncols; ++col) {
             double w = weigths(row, col);
             if (v < w) {
+                source_it += source_n;
+                source_n = 0;
                 result[col]->insert(*source_it);
                 break;
             } else {
