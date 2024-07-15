@@ -87,7 +87,10 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: lorenzwalthert/touchstone/actions/receive@main
+      - uses: plietar/touchstone/actions/receive@allow-custom-package
+        with:
+          touchstone_package: github::plietar/touchstone
+          touchstone_ref: "@check_false"
 
   comment:
     needs: ['prepare', 'build']
