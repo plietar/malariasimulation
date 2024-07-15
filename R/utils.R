@@ -24,6 +24,13 @@ bernoulli_multi_p <- function(p) bernoulli_multi_p_cpp(p)
 #' @noRd
 bitset_index <- function(a, b) bitset_index_cpp(a$.bitset, b$.bitset)
 
+bitset_at_logical <- function(a, b) individual::Bitset$new(from = bitset_at_logical_cpp(a$.bitset, b))
+
+bitset_partition <- function(bitset, value, weigths) {
+  lapply(bitset_partition_cpp(bitset$.bitset, value, weigths),
+         function(p) individual::Bitset$new(from = p))
+}
+
 #' @importFrom stats runif
 log_uniform <- function(size, rate) -rate * log(runif(size))
 
@@ -104,3 +111,17 @@ RandomState <- R6::R6Class(
     }
   )
 )
+
+#'@title Convert probability to a rate
+#'@param prob probability
+#'@noRd
+prob_to_rate <- function(prob){
+  -log(1 - prob)
+}
+
+#'@title Convert rate to a probability
+#'@param rate rate
+#'@noRd
+rate_to_prob <- function(rate){
+  1 - exp(-rate)
+}
